@@ -13,6 +13,7 @@ import folium
 from shapely import from_wkt
 from datetime import datetime
 import hashlib
+from io import StringIO, BytesIO
 
 st.set_page_config(layout="wide", page_icon="🏘️")
 
@@ -78,25 +79,18 @@ if koopsom_files:
             fig.update_coloraxes(colorbar_tickmode="array", colorbar_tickvals=tickvals, colorbar_ticktext=ticktext)
         st.plotly_chart(fig)
 
-# if not koopsom_files:
-#     st.write("Upload Koopsom files above")
-    # search = search_postcode_huisnummer("3069WC", 19)
-    # adres = search[0]
-    # postcode = search[1]
-    # full_json = search[2]
-    # st.write(full_json)
-    # st.dataframe(adres)
-    # st.code(postcode)
-    # st.write(dir(postcode))
+if "extracts" in dir():
+    st.text("Download Koopsominformatie as a table here:")
 
-    # m = folium.Map([postcode.y, postcode.x], 
-    #                width="100%", height="100%",
-    #                zoom_start=18)
-    # for ix, huis in adres.iterrows():
-    #     # st.write(dir(huis))
-    #     huis_latlon = from_wkt(huis.centroide_ll)
-    #     folium.Marker([huis_latlon.y, huis_latlon.x], icon=folium.Icon(color="darkgreen", icon="home")).add_to(m)
-    # st_folium(m, width=1200, height=700)
+    ksi_1, ksi_2, ksi_3, ksi_4, ksi_5 = st.columns(5)
+
+    csv_file = BytesIO()
+    extracts.to_csv(csv_file)
+    excel_file = BytesIO()
+    extracts.to_excel(excel_file)
+
+    ksi_1.download_button("Download as CSV", data=csv_file, file_name=f"Koopsominformatie_{datetime.now().isoformat()}.csv")
+    ksi_2.download_button("Download as Excel", data=excel_file, file_name=f"Koopsominformatie_{datetime.now().isoformat()}.xlsx")
 
 st.header("Funda")
 
@@ -146,7 +140,7 @@ with st.form("funda-data", clear_on_submit=True):
     new_funda_energylabel = fe0.select_slider("Energylabel: ", options=["A+++", "A++", "A+", "A", "B", "C", "D", "E", "F", "G"])
     new_funda_bouwjaar = fe1.number_input("Bouwjaar: ", min_value=1000, max_value=datetime.now().year+1, value=1980)
     new_funda_aangeboden = fe2.date_input("Aangeboden sinds:")
-    st.form_submit_button("Toevoeg naar tafel", )
+    st.form_submit_button("Toevoeg naar tabel", )
 
 funda_df = add_row_fundadf(st.session_state["fundadf"], new_funda_postcode, new_funda_huisnummer, new_funda_toevoeging,
                            new_funda_vraagprijs, new_funda_huisgrotte, new_funda_percelgrotte, 
@@ -205,3 +199,23 @@ funda_kaart = folium.Map([funda_mean_lat, funda_mean_lon], zoom_start=15)
 for adres in funda_adrezen:
     folium.Marker([adres[2], adres[3]], icon=folium.Icon(color="orange", icon="home")).add_to(funda_kaart)
 st_folium(funda_kaart, width=1200, height=600)
+
+if "fundadf" in st.session_state:
+    if "woz" in dir():
+        st.text("Download Funda and WOZ data as a table here:")
+
+        fwi_1, fwi_2, fwi_3, fwi_4, fwi_5 = st.columns(5)
+
+        funda_csv_file = BytesIO()
+        st.session_state["fundadf"].to_csv(funda_csv_file)
+        funda_excel_file = BytesIO()
+        st.session_state["fundadf"].to_excel(funda_excel_file)
+        woz_csv_file = BytesIO()
+        woz.to_csv(woz_csv_file)
+        woz_excel_file = BytesIO()
+        woz.to_excel(woz_excel_file)
+
+        fwi_1.download_button("Download Funda as CSV", data=funda_csv_file, file_name=f"Funda_{datetime.now().isoformat()}.csv")
+        fwi_2.download_button("Download Funda as Excel", data=funda_excel_file, file_name=f"Funda_{datetime.now().isoformat()}.xlsx")
+        fwi_3.download_button("Download WOZ as CSV", data=woz_csv_file, file_name=f"WOZ_{datetime.now().isoformat()}.csv")
+        fwi_4.download_button("Download WOZ as Excel", data=woz_excel_file, file_name=f"WOZ_{datetime.now().isoformat()}.xlsx")
