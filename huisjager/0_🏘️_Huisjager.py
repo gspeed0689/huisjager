@@ -15,7 +15,9 @@ from datetime import datetime
 import hashlib
 from io import StringIO, BytesIO
 
-st.set_page_config(layout="wide", page_icon="🏘️")
+st.set_page_config(layout="wide", 
+                   page_icon="🏘️",
+                   page_title="Huisjager")
 
 st.header("Kadaster Koopsominformatie")
 
